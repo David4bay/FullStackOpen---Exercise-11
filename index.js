@@ -48,11 +48,43 @@ app.get('/info', async (request, response) => {
 app.get('/api/persons', async (request, response) => {
 
   await PhonebookEntry.find({}).then((data) => {
-    console.log(data)
-    if (!data) {
-      return response.json([])
+    console.log("data", data)
+    if (data.length === 0) {
+         PhonebookEntry.insertMany([
+        {
+          name: 'Dan Abramov',
+          number: '124-323-4345',
+        },
+        {
+          name: 'Mary Poppendieck',
+          number: '392-364-2312',
+        },
+        {
+          name: 'Ada Lovelace',
+          number: '394-532-3523',
+        },
+        {
+          name: 'Arto Hellas',
+          number: '040-123-4560',
+        },
+        {
+          name: 'Anna',
+          number: '040-123-4556',
+        },
+        {
+          name: 'Arto Vihanvainen',
+          number: '045-123-2456',
+        }
+      ]).then(() => {
+        PhonebookEntry.find({}).then((entries) => {
+          return response.status(200).json(entries)
+        })
+      })
+    } else {
+      return response.json(data)
     }
-    return response.json(data)
+  }).catch((e) => {
+    return response.status(500).json({ message: 'Failed to fetch phone numbers.'})
   })
 })
 
