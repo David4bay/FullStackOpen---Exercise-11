@@ -4,6 +4,7 @@ const app = express()
 const PhonebookEntry = require('./models/phoneData')
 const cors = require('cors')
 const morgan = require('morgan')
+const dummyData = require('./dummy_data/data')
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
@@ -50,33 +51,10 @@ app.get('/api/persons', async (request, response) => {
   await PhonebookEntry.find({}).then((data) => {
     console.log("data", data)
     if (data.length === 0) {
-         PhonebookEntry.insertMany([
-        {
-          name: 'Dan Abramov',
-          number: '124-323-4345',
-        },
-        {
-          name: 'Mary Poppendieck',
-          number: '392-364-2312',
-        },
-        {
-          name: 'Ada Lovelace',
-          number: '394-532-3523',
-        },
-        {
-          name: 'Arto Hellas',
-          number: '040-123-4560',
-        },
-        {
-          name: 'Anna',
-          number: '040-123-4556',
-        },
-        {
-          name: 'Arto Vihanvainen',
-          number: '045-123-2456',
-        }
-      ]).then(() => {
+
+        PhonebookEntry.insertMany(dummyData).then(() => {
         PhonebookEntry.find({}).then((entries) => {
+          
           return response.status(200).json(entries)
         })
       })
