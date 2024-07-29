@@ -154,21 +154,23 @@ app.put('/api/persons/:id', async (request, response) => {
 app.delete('/api/persons/:id', async (request, response) => {
 
   const id = request.params.id
-  console.log("id exists", id)
+
   if (!id) {
     return response.status(404).json({ error: 'Invalid number' })
   }
 
   const person = await PhonebookEntry.findOne({ id: String(id) })
-  console.log("person found", person)
+
   if (!person) {
+
     return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
   }  
+
   await PhonebookEntry.deleteOne({ id: String(id) }).then(() => {
-    console.log("person found inside delete call", person.name)
-    return response.status(200).json({ message: `${person.name} deleted` })
+
+    return response.status(204).json({ message: `${person.name} deleted` })
   }).catch((e) => {
-    console.log("error caught", e)
+
     return response.status(404).json({ message: 'Sorry, unable to delete user.'})
   })
 })
