@@ -38,6 +38,13 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
+app.get('/info', async (request, response) => {
+  await PhonebookEntry.find({}).then((persons) => {
+    const markup = (`<p>Phonebook has info for ${persons.length} people</p><p>${new Date(Date.now())}`)
+    response.send(markup)
+  })
+})
+
 app.get('/api/persons', async (request, response) => {
 
   await PhonebookEntry.find({}).then((data) => {
@@ -49,11 +56,53 @@ app.get('/api/persons', async (request, response) => {
   })
 })
 
-app.get('/info', async (request, response) => {
-  await PhonebookEntry.find({}).then((persons) => {
-    const markup = (`<p>Phonebook has info for ${persons.length} people</p><p>${new Date(Date.now())}`)
-    response.send(markup)
+app.post('/api/persons', async (request, response) => {
+
+  const newName = request.body.name.trim()
+
+  const newNumber = { name: newName, number: request.body.number, id: request.body.id || Math.floor(Math.random() * 10000 + 1)  }
+
+  const newPhoneNumber = request.body.number
+
+  if (!newPhoneNumber) {
+
+    return response.status(404).json({ error: 'Sorry, this is an invalid number' })
+  }
+
+  await PhonebookEntry.findOne({ number: request.body.number }).then((person) => {
+
+    let opts = { runValidators: true }
+
+    console.log('person', person)
+
+    if (!person) {
+
+      return PhonebookEntry({ ...newNumber }).save().then(() => {
+
+        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name, id: newNumber.id })
+      }).catch((error) => {
+
+        response.status(500).json(error)
+      })
+    }
+
+
+    return PhonebookEntry.updateOne({ number: request.body.number }, { ...newNumber }, opts).then((person) => {
+
+      console.log(person)
+
+    }).catch((error) => {
+
+      response.status(500).json(error)
+    })
   })
+})
+
+app.delete('/api/persons', async (request, response) => {
+  await PhonebookEntry.deleteMany({}).then(() => {
+    response.status(204).json({ message: 'All numbers deleted.' })
+  })
+
 })
 
 app.get('/api/persons/:id', async (request, response) => {
@@ -102,74 +151,26 @@ app.put('/api/persons/:id', async (request, response) => {
 
 })
 
-
-app.post('/api/persons', async (request, response) => {
-
-  const newName = request.body.name.trim()
-
-  const newNumber = { name: newName, number: request.body.number, id: request.body.id || Math.floor(Math.random() * 10000 + 1)  }
-
-  const newPhoneNumber = request.body.number
-
-  if (!newPhoneNumber) {
-
-    return response.status(404).json({ error: 'Sorry, this is an invalid number' })
-  }
-
-  await PhonebookEntry.findOne({ number: request.body.number }).then((person) => {
-
-    let opts = { runValidators: true }
-
-    console.log('person', person)
-
-    if (!person) {
-
-      return PhonebookEntry({ ...newNumber }).save().then(() => {
-
-        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name, id: newNumber.id })
-      }).catch((error) => {
-
-        response.status(500).json(error)
-      })
-    }
-
-
-    return PhonebookEntry.updateOne({ number: request.body.number }, { ...newNumber }, opts).then((person) => {
-
-      console.log(person)
-
-    }).catch((error) => {
-
-      response.status(500).json(error)
-    })
-  })
-})
-
 app.delete('/api/persons/:id', async (request, response) => {
 
   const id = request.params.id
-
+  console.log("id exists", id)
   if (!id) {
     return response.status(404).json({ error: 'Invalid number' })
   }
 
-  const person = await PhonebookEntry.find({ id })
-
+  const person = await PhonebookEntry.findOne({ id: String(id) })
+  console.log("person found", person)
   if (!person) {
     return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
   }  
-  return PhonebookEntry.deleteOne({ id }).then(() => {
-    return response.status(204).json({ message: `${person.name} deleted` })
+  await PhonebookEntry.deleteOne({ id: String(id) }).then(() => {
+    console.log("person found inside delete call", person.name)
+    return response.status(200).json({ message: `${person.name} deleted` })
   }).catch((e) => {
-    response.status(404).json({ message: 'Sorry, unable to delete user.'})
+    console.log("error caught", e)
+    return response.status(404).json({ message: 'Sorry, unable to delete user.'})
   })
-})
-
-app.delete('/api/persons', async (request, response) => {
-  await PhonebookEntry.deleteMany({}).then(() => {
-    response.status(204).json({ message: 'All numbers deleted.' })
-  })
-
 })
 
 app.use(unknownEndpoint)

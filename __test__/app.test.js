@@ -46,7 +46,7 @@ describe('Phonebook API', () => {
       const newPerson = { name: 'John Smith', number: '123-123-1237'}
       const createdPerson = await api.post('/api/persons').send(newPerson)
       const response = await api.delete(`/api/persons/${createdPerson.body.id}`)
-      expect(response.status).toBe(204)
+      expect(response.status).toBe(200)
       console.log("createdPerson", createdPerson.body, "response", response.body)
       expect(response.body.message).toBe(`${createdPerson.body.name} deleted`)
     }, 400000)
