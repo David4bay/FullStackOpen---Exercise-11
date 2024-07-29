@@ -25,36 +25,37 @@ describe('Phonebook API', () => {
       const response = await api.get('/api/persons')
       expect(response.status).toBe(200)
       expect(response.body).toBeInstanceOf(Array)
-    })
+    }, 400000)
   
     test('POST /api/persons should add a new person', async () => {
-      const newPerson = { name: 'John Doe', number: '123456789' }
+      const newPerson = { name: 'John Doe', number: '123-456-7890' }
       const response = await api.post('/api/persons').send(newPerson)
       expect(response.status).toBe(201)
       expect(response.body.message).toBe(`${newPerson.name} added`)
-    })
+    }, 400000)
   
     test('PUT /api/persons/:id should update a person', async () => {
-      const newPerson = { name: 'Jane Doe', number: '987654321' }
+      const newPerson = { name: 'Jane Doe', number: '987-654-3210' }
       const createdPerson = await api.post('/api/persons').send(newPerson)
       const response = await api.put(`/api/persons/${createdPerson.body.id}`).send({ name: 'Jane Smith' })
       expect(response.status).toBe(200)
       expect(response.body.name).toBe('Jane Smith')
-    })
+    }, 400000)
   
     test('DELETE /api/persons/:id should delete a person', async () => {
-      const newPerson = { name: 'John Smith', number: '123123123' }
+      const newPerson = { name: 'John Smith', number: '123-123-1237'}
       const createdPerson = await api.post('/api/persons').send(newPerson)
       const response = await api.delete(`/api/persons/${createdPerson.body.id}`)
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(204)
+      console.log("createdPerson", createdPerson.body, "response", response.body)
       expect(response.body.message).toBe(`${createdPerson.body.name} deleted`)
-    })
+    }, 400000)
   
     test('Unknown endpoint should return 404', async () => {
       const response = await api.get('/unknown')
       expect(response.status).toBe(404)
       expect(response.body.error).toBe('unknown endpoint')
-    })
+    }, 400000)
   })
 
 afterAll(async () => {

@@ -39,7 +39,7 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', async (request, response) => {
-  
+
   await PhonebookEntry.find({}).then((data) => {
     console.log(data)
     if (!data) {
@@ -126,12 +126,11 @@ app.post('/api/persons', async (request, response) => {
 
       return PhonebookEntry({ ...newNumber }).save().then(() => {
 
-        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name })
-
+        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name, id: newNumber.id })
       }).catch((error) => {
+
         response.status(500).json(error)
       })
-
     }
 
 
@@ -140,12 +139,10 @@ app.post('/api/persons', async (request, response) => {
       console.log(person)
 
     }).catch((error) => {
-      
+
       response.status(500).json(error)
     })
-
   })
-
 })
 
 app.delete('/api/persons/:id', async (request, response) => {
@@ -156,16 +153,15 @@ app.delete('/api/persons/:id', async (request, response) => {
     return response.status(404).json({ error: 'Invalid number' })
   }
 
-  await PhonebookEntry.find({ id }).then((person) => {
+  const person = await PhonebookEntry.find({ id })
 
-    if (!person) {
-      return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
-    }
-    PhonebookEntry.deleteOne({ id }).then(() => {
-      return response.json({ message: `${person.name} deleted` })
-    })
-  }).catch(() => {
-    response.status(404).json({ error: 'Something went wrong.' })
+  if (!person) {
+    return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
+  }  
+  return PhonebookEntry.deleteOne({ id }).then(() => {
+    return response.status(204).json({ message: `${person.name} deleted` })
+  }).catch((e) => {
+    response.status(404).json({ message: 'Sorry, unable to delete user.'})
   })
 })
 

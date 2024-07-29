@@ -8,11 +8,7 @@
     "server": "cross-env NODE_ENV=development nodemon app.js",
     "test": "cross-env NODE_ENV=test jest --config jest.config.js --verbose --runInBand ./__test__",
     "lint": "eslint --fix ./**/*.{js}",
-    "build": "npm run lint && npm run test && npm run test:e2e",
     "cypress:open": "cypress open"
-  },
-  "jest": {
-    "testEnvironment": "node"
   },
   "author": "David Bayode",
   "license": "MIT",

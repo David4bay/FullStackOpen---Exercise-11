@@ -28,4 +28,3 @@ const phoneNumberSchema = new mongoose.Schema({
 })
 
 module.exports = mongoose.model('PhonebookEntry', phoneNumberSchema)
-
