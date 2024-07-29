@@ -1,13 +1,9 @@
 require('dotenv').config()
-const PhonebookEntry = require('./models/phoneData')
 const express = require('express')
-const cors = require('cors')
 const app = express()
+const PhonebookEntry = require('./models/phoneData')
+const cors = require('cors')
 const morgan = require('morgan')
-const PORT = process.env.PORT || 3001
-
-// const persons = [
-// ]
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
@@ -38,16 +34,18 @@ app.use(morgan(':method :url :status :response-time - :total-time[digits] ms :bo
 app.use(errorHandler)
 
 app.get('/', (request, response) => {
+
   response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/api/persons', async (request, response) => {
+  
   await PhonebookEntry.find({}).then((data) => {
     console.log(data)
     if (!data) {
       return response.json([])
     }
-    response.json(data)
+    return response.json(data)
   })
 })
 
@@ -59,7 +57,6 @@ app.get('/info', async (request, response) => {
 })
 
 app.get('/api/persons/:id', async (request, response) => {
-
   const { id } = request.params
 
   if (!id) {
@@ -81,6 +78,7 @@ app.get('/api/persons/:id', async (request, response) => {
 })
 
 app.put('/api/persons/:id', async (request, response) => {
+
   const { id } = request.params
 
   const newName = request.body.name.trim()
@@ -142,6 +140,7 @@ app.post('/api/persons', async (request, response) => {
       console.log(person)
 
     }).catch((error) => {
+      
       response.status(500).json(error)
     })
 
@@ -171,16 +170,12 @@ app.delete('/api/persons/:id', async (request, response) => {
 })
 
 app.delete('/api/persons', async (request, response) => {
-
   await PhonebookEntry.deleteMany({}).then(() => {
-
-    response.json({ message: 'All numbers deleted.' })
+    response.status(204).json({ message: 'All numbers deleted.' })
   })
 
 })
 
 app.use(unknownEndpoint)
 
-app.listen(PORT, () => {
-  console.log(`Server running on PORT ${PORT}`)
-})
+module.exports = app

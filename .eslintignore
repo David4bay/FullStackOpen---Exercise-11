@@ -1,0 +1,16 @@
+.vscode
+node_modules
+# .env
+# package.json
+# package-lock.json
+# .eslintignore
+# playwright.config.json
+# README.md
+# build_step.sh
+# .eslintrc.json
+# .github/
+dist/
+tests-examples/
+cypress/
+
+# requests/1

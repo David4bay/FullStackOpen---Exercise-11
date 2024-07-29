@@ -1,0 +1,68 @@
+name: Deployment pipeline
+
+on:
+    pull_request:
+        branches:
+            - main
+        types: [opened, synchronize]
+    push:
+        branches:
+            - main
+
+env:
+    COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
+    COMMIT: ${{ toJson(github.event.commits)[0] }}
+    SECRET: ${{ secrets.SECRET }}
+    MONGO_PASS: ${{ secrets.MONGO_PASS }}
+    MONGO_USER: ${{ secrets.MONGO_USER }}
+
+jobs:
+    simple_deployment_pipeline:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+            - name: install dependencies
+              run: npm install
+            - name: run eslint
+              run: npm run eslint
+            - name: run tests
+              run: npm run test
+            - name: e2e tests
+              uses: cypress-io/github-action@v5
+              with:
+                  command: npm run cypress
+                  start: npm run start
+                  wait-on: http://localhost:3001
+            - name: deployment
+              if: ${{ github.event_name == 'push' }}
+              run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_ID }}?key=${{ secrets.RENDER_KEY }}
+            - name: Success
+              uses: rjstone/discord-webhook-notify@v1
+              if: ${{ github.event_name == 'push' && success() }}
+              with:
+                  severity: info
+                  text: A new version of Phonebook App deployed
+                  details: 'to https://fullstackopen-exercise-11.onrender.com/'
+                  webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+            - name: Failure
+              uses: rjstone/discord-webhook-notify@v1
+              if: ${{ github.event_name == 'push' && failure() }}
+              with:
+                  severity: error
+                  text: Build failed!
+                  details: ${{ format('commit {0} by {1} broke the build :((', env.COMMIT.url, env.COMMIT.author.name) }}
+                  webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+    tag_release:
+        needs: [simple_deployment_pipeline]
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: Bump version and push tag
+              if: ${{ github.event_name == 'push' && !contains(join(env.COMMIT_MESSAGES, ', '), '#skip')}}
+              uses: anothrNick/github-tag-action@8c8163ef62cf9c4677c8e800f36270af27930f42
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  DEFAULT_BUMP: patch
