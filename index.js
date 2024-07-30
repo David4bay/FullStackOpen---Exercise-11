@@ -71,6 +71,7 @@ app.get('/api/persons/:id', async (request, response) => {
       }
     })
     .catch(error => {
+      console.log(error)
       response.status(500).end()
     })
 })
@@ -90,7 +91,7 @@ app.put('/api/persons/:id', async (request, response) => {
   const updatedPerson = await PhonebookEntry.updateOne({ id: personExists.id }, { ...newNumber })
 
   if (!updatedPerson) return response.status(500).json({ error: `Sorry, unable to update phone number.`})
-  
+
   return response.status(200).json({...personExists, name: newName })
 })
 
