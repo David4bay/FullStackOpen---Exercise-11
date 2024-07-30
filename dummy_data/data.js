@@ -1,4 +1,4 @@
-export default = [
+export const data = [
     {
       name: 'Dan Abramov',
       number: '124-323-4345',
