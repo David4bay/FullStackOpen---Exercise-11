@@ -51,7 +51,6 @@ describe('Phonebook API', () => {
     const newPerson = { name: 'Jane Doe', number: '987-654-3210' }
 
     const createdPerson = await api.post('/api/persons').send(newPerson)
-
     const response = await api.put(`/api/persons/${createdPerson.body.id}`).send({ name: 'Jane Smith' })
 
     expect(response.status).toBe(200)

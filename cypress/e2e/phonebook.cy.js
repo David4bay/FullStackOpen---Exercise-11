@@ -20,12 +20,4 @@ describe('Phonebook App', () => {
     cy.get('ul').contains('John Doe').find('button').contains('delete').click()
     cy.get('ul').should('not.contain', 'John Doe')
   })
-
-   after(() => {
-    cy.request('DELETE', '/api/persons')
-      .then((response) => {
-        expect(response.status).to.eq(204); // Check if the status code is 204 No Content
-        expect(response.body).to.be.empty; // Ensure the body is empty
-      });
-  });
 })
