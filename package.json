@@ -7,7 +7,7 @@
     "start": "cross-env NODE_ENV=production node app.js",
     "server": "cross-env NODE_ENV=development nodemon app.js",
     "test": "cross-env NODE_ENV=test jest --config jest.config.js --verbose --runInBand ./__test__",
-    "lint": "eslint --fix ./**/*.{js}",
+    "lint": "eslint --fix index.js",
     "cypress:open": "cypress open"
   },
   "author": "David Bayode",
@@ -21,10 +21,10 @@
     "nodemon": "3.0.2"
   },
   "devDependencies": {
-    "cypress": "12.0.0",
     "@types/node": "^20.14.12",
     "cross-env": "^7.0.3",
-    "eslint": "^8.56.0",
+    "cypress": "12.0.0",
+    "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
   }

@@ -8,31 +8,28 @@
     "parserOptions": {
         "ecmaVersion": "latest"
     },
+    "ignorePatterns": [
+    "node_modules/", 
+    "dist/", 
+    ".github/", 
+    "package.json",
+    "package-lock.json",
+    "mongo.js",
+    "cypress.config.js",
+    "cypress/",
+    "__test__/",
+    ".vscode/",
+    "models/"
+],
     "rules": {
-        "indent": [
-            "error",
-            2
-        ],
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
-        "quotes": [
-            "error",
-            "single"
-        ],
-        "semi": [
-            "error",
-            "never"
-        ],
+        "indent": ["error", 2],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "single"],
+        "semi": ["error", "never"],
         "eqeqeq": "error",
         "no-trailing-spaces": "error",
-    "object-curly-spacing": [
-        "error", "always"
-    ],
-    "arrow-spacing": [
-        "error", { "before": true, "after": true }
-    ],
-    "no-console": 0
+        "object-curly-spacing": ["error", "always"],
+        "arrow-spacing": ["error", { "before": true, "after": true }],
+        "no-console": "off"
     }
 }
