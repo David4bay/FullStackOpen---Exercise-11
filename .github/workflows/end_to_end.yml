@@ -1,0 +1,53 @@
+name: End To End Test pipeline
+
+on:
+    pull_request:
+        branches:
+            - main
+            - master
+        types: [opened, synchronize]
+
+    push:
+        branches:
+            - main
+            - master
+
+env:
+    COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
+    COMMIT: ${{ toJson(github.event.commits)[0] }}
+    SECRET: ${{ secrets.SECRET }}
+    MONGO_PASS: ${{ secrets.MONGO_PASS }}
+    MONGO_USER: ${{ secrets.MONGO_USER }}
+
+jobs:
+    simple_deployment_pipeline:
+        runs-on: ubuntu-20.04
+        steps:
+         
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+            - name: install dependencies
+              run: npm install
+            - name: e2e tests
+              uses: cypress-io/github-action@v5
+              with:
+                  command: npm run cypress:run
+                  start: npm run start
+                  wait-on: http://localhost:3001
+            - name: End To End Test
+              uses: rjstone/discord-webhook-notify@v1.0.4
+              if: success()
+              with:
+                  severity: info
+                  details: 'Tests passed'
+                  webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+            - name: Failure
+              uses: rjstone/discord-webhook-notify@v1.0.4
+              if: failure()
+              with:
+                severity: error
+                text: Tests Failed!
+                details: ${{ format('commit {0} by {1} broke the build :((', env.COMMIT.url, env.COMMIT.author.name) }}
+                webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
