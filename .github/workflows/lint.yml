@@ -19,19 +19,18 @@ env:
     MONGO_USER: ${{ secrets.MONGO_USER }}
 
 jobs:
-    deployment_pipeline:
+    lint_pipeline:
         runs-on: ubuntu-20.04
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
                   node-version: '20'
-            - name: install dependencies
+            - name: Install Dependencies
               run: npm install
-            - name: deployment
-              if: ${{ github.event_name == 'push' }}
-              run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_ID }}?key=${{ secrets.RENDER_KEY }}
-            - name: Deployment Status
+            - name: run ESLint
+              run: npm run lint
+            - name: Lint
               uses: rjstone/discord-webhook-notify@v1
               if: success()
               with:
@@ -47,14 +46,3 @@ jobs:
                   text: Build failed!
                   details: ${{ format('commit {0} by {1} broke the build :((', env.COMMIT.url, env.COMMIT.author.name) }}
                   webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-    tag_release:
-        needs: [simple_deployment_pipeline]
-        runs-on: ubuntu-20.04
-        steps:
-            - uses: actions/checkout@v4
-            - name: Bump version and push tag
-              if: ${{ github.event_name == 'push' && !contains(join(env.COMMIT_MESSAGES, ', '), '#skip')}}
-              uses: anothrNick/github-tag-action@8c8163ef62cf9c4677c8e800f36270af27930f42
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  DEFAULT_BUMP: patch

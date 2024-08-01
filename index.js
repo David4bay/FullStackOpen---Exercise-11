@@ -4,7 +4,6 @@ const app = express()
 const PhonebookEntry = require('./models/phoneData')
 const cors = require('cors')
 const morgan = require('morgan')
-const dummyData = require('./dummy_data/data')
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
@@ -39,80 +38,21 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
+app.get('/api/persons', async (request, response) => {
+  
+  await PhonebookEntry.find({}).then((data) => {
+    if (!data) {
+      return response.json([])
+    }
+    return response.json(data)
+  })
+})
+
 app.get('/info', async (request, response) => {
   await PhonebookEntry.find({}).then((persons) => {
     const markup = (`<p>Phonebook has info for ${persons.length} people</p><p>${new Date(Date.now())}`)
     response.send(markup)
   })
-})
-
-app.get('/api/persons', async (request, response) => {
-
-  await PhonebookEntry.find({}).then((data) => {
-    console.log("data", data)
-    if (data.length === 0) {
-
-        PhonebookEntry.insertMany(dummyData).then(() => {
-        PhonebookEntry.find({}).then((entries) => {
-          
-          return response.status(200).json(entries)
-        })
-      })
-    } else {
-      return response.json(data)
-    }
-  }).catch((e) => {
-    return response.status(500).json({ message: 'Failed to fetch phone numbers.'})
-  })
-})
-
-app.post('/api/persons', async (request, response) => {
-
-  const newName = request.body.name.trim()
-
-  const newNumber = { name: newName, number: request.body.number, id: request.body.id || Math.floor(Math.random() * 10000 + 1)  }
-
-  const newPhoneNumber = request.body.number
-
-  if (!newPhoneNumber) {
-
-    return response.status(404).json({ error: 'Sorry, this is an invalid number' })
-  }
-
-  await PhonebookEntry.findOne({ number: request.body.number }).then((person) => {
-
-    let opts = { runValidators: true }
-
-    console.log('person', person)
-
-    if (!person) {
-
-      return PhonebookEntry({ ...newNumber }).save().then(() => {
-
-        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name, id: newNumber.id })
-      }).catch((error) => {
-
-        response.status(500).json(error)
-      })
-    }
-
-
-    return PhonebookEntry.updateOne({ number: request.body.number }, { ...newNumber }, opts).then((person) => {
-
-      console.log(person)
-
-    }).catch((error) => {
-
-      response.status(500).json(error)
-    })
-  })
-})
-
-app.delete('/api/persons', async (request, response) => {
-  await PhonebookEntry.deleteMany({}).then(() => {
-    response.status(204).json({ message: 'All numbers deleted.' })
-  })
-
 })
 
 app.get('/api/persons/:id', async (request, response) => {
@@ -139,24 +79,63 @@ app.get('/api/persons/:id', async (request, response) => {
 app.put('/api/persons/:id', async (request, response) => {
 
   const { id } = request.params
-
   const newName = request.body.name.trim()
 
-  const newNumber = { name: newName, number: request.body.number, id: id || Math.floor(Math.random() * 10000 + 1) }
+  const newNumber = { name: newName, id: id || Math.floor(Math.random() * 10000 + 1) }
 
-  const personExists = await PhonebookEntry.findOne({ id: id })
-
+  const personExists = await PhonebookEntry.findOne({ id: newNumber.id })
   if (!personExists) {
     return response.status(404).json({ error: 'Sorry, username does not exist.' })
   }
 
-  await PhonebookEntry.updateOne({ id: personExists.id }, { ...newNumber }).then((person) => {
-    if (person) {
+  const updatedPerson = await PhonebookEntry.updateOne({ id: personExists.id }, { ...newNumber })
 
-      return response.json({ name: newName })
+  if (!updatedPerson) return response.status(500).json({ error: `Sorry, unable to update phone number.`})
+
+  return response.status(200).json({...personExists, name: newName })
+})
+
+
+app.post('/api/persons', async (request, response) => {
+
+  const newName = request.body.name.trim()
+
+  const newNumber = { name: newName, number: request.body.number, id: request.body.id || Math.floor(Math.random() * 10000 + 1)  }
+
+  const newPhoneNumber = request.body.number
+
+  if (!newPhoneNumber) {
+
+    return response.status(404).json({ error: 'Sorry, this is an invalid number' })
+  }
+
+  await PhonebookEntry.findOne({ number: request.body.number }).then((person) => {
+
+    let opts = { runValidators: true }
+
+
+    if (!person) {
+
+      return PhonebookEntry({ ...newNumber }).save().then(() => {
+
+        response.status(201).json({ message: `${newNumber.name} added`, name: newNumber.name, id: newNumber.id })
+
+      }).catch((error) => {
+        response.status(500).json(error)
+      })
+
     }
-  }).catch((error) => {
-    console.log(error.response.data.error)
+
+
+    return PhonebookEntry.updateOne({ number: request.body.number }, { ...newNumber }, opts).then((person) => {
+
+      response.json(person)
+
+    }).catch((error) => {
+      
+      response.status(500).json(error)
+    })
+
   })
 
 })
@@ -169,20 +148,24 @@ app.delete('/api/persons/:id', async (request, response) => {
     return response.status(404).json({ error: 'Invalid number' })
   }
 
-  const person = await PhonebookEntry.findOne({ id: String(id) })
+  await PhonebookEntry.find({ id }).then((person) => {
 
-  if (!person) {
-
-    return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
-  }  
-
-  await PhonebookEntry.deleteOne({ id: String(id) }).then(() => {
-
-    return response.status(204).json({ message: `${person.name} deleted` })
-  }).catch((e) => {
-
-    return response.status(404).json({ message: 'Sorry, unable to delete user.'})
+    if (!person) {
+      return response.status(404).json({ error: 'Could not find number, are you sure it exists?' })
+    }
+    PhonebookEntry.deleteOne({ id }).then(() => {
+      return response.status(204).json({ message: `${person.name} deleted` })
+    })
+  }).catch(() => {
+    response.status(404).json({ error: 'Something went wrong.' })
   })
+})
+
+app.delete('/api/persons', async (request, response) => {
+  await PhonebookEntry.deleteMany({}).then(() => {
+    response.status(204).json({ message: 'All numbers deleted.' })
+  })
+
 })
 
 app.use(unknownEndpoint)

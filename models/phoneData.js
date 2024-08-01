@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const url = process.env.NODE_ENV !== 'test' ? `mongodb+srv://${process.env.MONGO_USER}:${encodeURIComponent(process.env.MONGO_PASS)}@cluster0.7fmaegp.mongodb.net/phonebook?retryWrites=true&w=majority` : `mongodb+srv://${process.env.MONGO_USER}:${encodeURIComponent(process.env.MONGO_PASS)}@cluster0.7fmaegp.mongodb.net/phonebookTest?retryWrites=true&w=majority`
 
 mongoose.connect(url).then(() => {
-  console.log(`Successfully connected to ${url}`)
+  console.log(`Successfully connected to Mongo Atlas Cloud`)
 }).catch((e) => {
   console.log(`Failed to connect, returned ${e?.message}`)
 })
